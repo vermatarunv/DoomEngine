@@ -3,26 +3,32 @@
 #include <vector>
 #include "Windows.h"
 
-typedef void (*DEInputCallable)(MSG);
 
-class InputComponent final
+class InputComponent
 {
-friend class Screen;
+	friend class Screen;
+
 public:
 	~InputComponent(void);
 	
-private:
-	// HACK: Remove this delete later
-	InputComponent(void) = delete;
-	InputComponent(DEInputCallable);
+protected:
+	void NotifyParent(EventMessage);
+
+	virtual void ProcessEvents(MSG) = 0;
+	
+	InputComponent();
 	InputComponent(const InputComponent&);
 	InputComponent(InputComponent&&);
 	InputComponent& operator = (const InputComponent&);
 	InputComponent& operator = (InputComponent&&);
 
+private:
+	// HACK: Remove this delete later
+	InputComponent(void) = delete;
+	
 	void ProcessUserInput();
-	void receive(EventMessage);
+	void InjectParent(Screen*);
 	std::vector<EventMessage> events;
-	DEInputCallable inputCallable;
-	void SetCallable(DEInputCallable);
+
+	Screen* parentScreen;
 };

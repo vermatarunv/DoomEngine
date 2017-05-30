@@ -4,6 +4,8 @@
 #include <windows.h>
 #include "DEGame.h"
 
+template <typename T>
+class Key { friend T; Key(){} Key(const Key&){} };
 
 class DoomEngine final
 {

@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include "ScreenData.h"
 #include "EventMessage.h"
 #include <memory>
@@ -6,8 +7,7 @@
 #include <d3d9.h>
 #include <functional>
 
-typedef void(*DEInputCallable)(void);
-
+class PhysicsComponent;
 class GraphicComponentSettings;
 class DEGame;
 class InputComponent;
@@ -16,38 +16,44 @@ class GraphicComponent;
 class Screen
 {
 	friend class DEGame;
-	friend class ScreenLogicComponent;
-
+	
 private:
 	std::unique_ptr<ScreenData> screenData;
 	std::unique_ptr<InputComponent> inputComponent;
 	std::shared_ptr<GraphicComponent> graphicComponent;
 	std::unique_ptr<ScreenLogicComponent> screenLogicComponent;
+	std::vector<EventMessage> messages;
 
-	
 	void SetDevices(LPDIRECT3DDEVICE9, HWND);
 	//std::unique_ptr<ScreenData> GetScreenData();
 
+	Screen(Screen&);
 protected:
-	virtual void SetupScreen() = 0;  // SetScreenData
+	int timeStep;
+	bool KeepRunning;
+	
+	// Screen execution functions
+	virtual std::unique_ptr<ScreenData> ScreenRender(std::unique_ptr<ScreenData>) = 0;
+	void FlushMessages();
 	std::unique_ptr<Screen> RunScreen();
 	virtual void EndScreen() = 0;
 	virtual std::unique_ptr<ScreenData> PreLogicUpdate(std::unique_ptr<ScreenData>) = 0;
+	
+	// Screen component changing functions
+	virtual void SetupScreen() = 0;  
 	void SetScreenData(std::unique_ptr<ScreenData>);
-	void SendMessageGraphic(EventMessage);
-	void SendMessageInput(EventMessage);
-	void SendMessageAI(EventMessage);
-	virtual void SendAll(EventMessage);
-	void ChangeInputCallable(DEInputCallable);
-	virtual std::unique_ptr<ScreenData> ScreenRender(std::unique_ptr<ScreenData>)=0;
-	int timeStep;
-	bool KeepRunning;
+	void ChangeInputComponent(std::unique_ptr<InputComponent>);
+
+	// Give Access ScreenData Access To GraphicComponent
+
 
 	Screen(void);
-	Screen(Screen&);
-	Screen(DEInputCallable, std::unique_ptr<GraphicComponentSettings>, std::unique_ptr<ScreenLogicComponent>, int);
+	Screen(std::unique_ptr<InputComponent>, GraphicComponentSettings, std::unique_ptr<ScreenLogicComponent>, int);
 	Screen(Screen&&);
 	
 public:
+	// TODO: Optimze eventadding and removing
+	std::vector<EventMessage>& GetEventMessages();
+	void SendEventMessage(EventMessage);
 	virtual ~Screen(void);
 };

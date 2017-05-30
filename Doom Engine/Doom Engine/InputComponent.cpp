@@ -1,30 +1,28 @@
 #include "InputComponent.h"
+#include "Screen.h"
 
 
 InputComponent::~InputComponent(void)
-{}
-
-InputComponent::InputComponent(DEInputCallable _inputCallable)
 {
-inputCallable = _inputCallable;
+	parentScreen = nullptr;
 }
 
 InputComponent::InputComponent(InputComponent&& other)
 {
-	inputCallable = other.inputCallable;
+	parentScreen = other.parentScreen;
 }
 
 InputComponent& InputComponent::operator = (const InputComponent& other)
 {
 	if(this != &other)
 	{
-		inputCallable = other.inputCallable;
+		parentScreen = other.parentScreen;
 	}
 }
 
 InputComponent& InputComponent::operator = (InputComponent&& other)
 {
-	inputCallable = other.inputCallable;
+	parentScreen = other.parentScreen;
 }
 
 void InputComponent::ProcessUserInput()
@@ -32,15 +30,16 @@ void InputComponent::ProcessUserInput()
 	MSG message;
 	if(PeekMessage(&message, 0, 0, NULL, PM_REMOVE))
 	{
-		inputCallable(message);
+		ProcessEvents(message);
 	}
 }
 
-void InputComponent::receive(EventMessage em)
+void InputComponent::InjectParent(Screen* _parentScreen)
 {
-
+	parentScreen = _parentScreen;
 }
 
-void InputComponent::SetCallable(DEInputCallable)
+void InputComponent::NotifyParent(EventMessage _em)
 {
+	parentScreen->SendEventMessage(_em);
 }
